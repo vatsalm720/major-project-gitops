@@ -1,0 +1,19 @@
+# ArgoCD Helm values — minimal local KIND bootstrap
+# Chart: argo/argo-cd 9.5.19  (ArgoCD v3.4.3)
+# Namespace: gitops
+# Access: kubectl port-forward only — no ingress
+
+server:
+  # Disables TLS on argocd-server. Required for port-forward access without
+  # certificate errors. Safe for a local KIND cluster.
+  insecure: true
+
+dex:
+  # Dex provides OIDC SSO. Not needed for a local project with no external
+  # identity provider. Disabling removes the argocd-dex-server pod entirely.
+  enabled: false
+
+notifications:
+  # Notification controller is not used until Phase 5 (Grafana alerting).
+  # Disabling keeps the pod count minimal.
+  enabled: false
