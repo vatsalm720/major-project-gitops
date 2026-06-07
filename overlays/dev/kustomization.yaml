@@ -2,13 +2,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base
-images:
-  - name: major-project-api-service
-    newName: localhost:5000/major-project-api-service
-    newTag: 20be09f
-  - name: major-project-worker-service
-    newName: localhost:5000/major-project-worker-service
-    newTag: 20be09f
-  - name: major-project-chaos-service
-    newName: localhost:5000/major-project-chaos-service
-    newTag: 20be09f
+# images block populated by CI (Task 18 bot commit)
+# images:
+#   - name: major-project-api-service
+#     newName: localhost:5000/major-project-api-service
+#     newTag: <sha>
+#   - name: major-project-worker-service
+#     newName: localhost:5000/major-project-worker-service
+#     newTag: <sha>
+#   - name: major-project-chaos-service
+#     newName: localhost:5000/major-project-chaos-service
+#     newTag: <sha>
