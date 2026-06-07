@@ -10,6 +10,3 @@ resources:
   - netpol-allow-redis.yaml
   - netpol-allow-prometheus.yaml
   - resourcequota.yaml
-  - namespaces/app.yaml
-  - namespaces/monitoring.yaml
-  - namespaces/gitops.yaml
