@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: worker-service
+  namespace: app
+  labels:
+    app: worker-service
+    app.kubernetes.io/part-of: major-project
+spec:
+  selector:
+    matchLabels:
+      app: worker-service
+  namespaceSelector:
+    matchNames:
+      - app
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

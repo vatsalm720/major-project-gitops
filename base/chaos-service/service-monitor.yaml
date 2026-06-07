@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: chaos-service
+  namespace: app
+  labels:
+    app: chaos-service
+    app.kubernetes.io/part-of: major-project
+spec:
+  selector:
+    matchLabels:
+      app: chaos-service
+  namespaceSelector:
+    matchNames:
+      - app
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

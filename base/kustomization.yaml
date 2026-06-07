@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - api-service/
+  - worker-service/
+  - chaos-service/
+  - redis/
+  - configmap.yaml
+  - netpol-deny-all.yaml
+  - netpol-allow-redis.yaml
+  - netpol-allow-prometheus.yaml
+  - resourcequota.yaml
+  - namespaces/app.yaml
+  - namespaces/monitoring.yaml
+  - namespaces/gitops.yaml

@@ -1,0 +1,64 @@
+# Prometheus Adapter Helm values
+# Chart: prometheus-community/prometheus-adapter 5.3.0 (app v0.12.0)
+# Namespace: monitoring
+# Prometheus target: kube-prometheus-stack-prometheus.monitoring.svc:9090
+
+# ─── Prometheus connection ────────────────────────────────────────────────────
+# The adapter queries this URL to resolve custom metric requests.
+# Port is specified separately so the adapter can construct health-check URLs.
+# The URL uses the in-cluster DNS name of the kube-prometheus-stack Prometheus Service.
+prometheus:
+  url: http://kube-prometheus-stack-prometheus.monitoring.svc
+  port: 9090
+  path: ""
+
+# ─── Rules ───────────────────────────────────────────────────────────────────
+rules:
+  # Disable the chart's catch-all default rules.
+  # Defaults try to expose ALL Prometheus metrics using a generic mapping that
+  # requires label conventions this project does not follow. Keeping them active
+  # fills the custom metrics API with hundreds of broken or irrelevant entries
+  # and makes debugging much harder. Only our explicitly defined rule is exposed.
+  default: false
+
+  custom:
+    # ── http_requests_per_second ─────────────────────────────────────────────
+    # Exposes the per-pod HTTP request rate derived from the http_requests_total
+    # counter instrumented in api-service.
+    #
+    # How the adapter uses this rule:
+    #   1. seriesQuery finds all http_requests_total time series in Prometheus
+    #      that have both namespace and pod labels (set by Prometheus scrape
+    #      relabeling from the ServiceMonitor).
+    #   2. resources.overrides tells the adapter which Prometheus labels map to
+    #      which Kubernetes resource types — enabling per-pod and per-namespace
+    #      lookups from the HPA.
+    #   3. name renames the metric as seen through the custom.metrics.k8s.io API.
+    #      The HPA will reference it as "http_requests_per_second".
+    #   4. metricsQuery is the PromQL expression executed when the HPA queries.
+    #      <<.Series>> is replaced with the scoped series selector.
+    #      <<.GroupBy>> is replaced with the grouping labels (namespace, pod).
+    #      sum(...) collapses method/endpoint/status_code label combinations
+    #      so the HPA receives a single scalar per pod.
+    - seriesQuery: 'http_requests_total{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^http_requests_total$"
+        as: "http_requests_per_second"
+      metricsQuery: 'sum(rate(<<.Series>>[2m])) by (<<.GroupBy>>)'
+
+# ─── Resource limits ─────────────────────────────────────────────────────────
+# Tuned for a local KIND cluster. The adapter is lightweight — it only proxies
+# PromQL queries and does no local storage.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

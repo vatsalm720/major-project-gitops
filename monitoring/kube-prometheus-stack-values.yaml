@@ -1,0 +1,104 @@
+# kube-prometheus-stack Helm values
+# Target: KIND local cluster (major-project-cluster)
+# Namespace: monitoring
+
+# ─── Prometheus Operator ─────────────────────────────────────────────────────
+# Disable admission webhooks.
+# In KIND the API server cannot reliably reach in-cluster webhook services
+# because KIND nodes run as Docker containers with their own network bridges.
+# Without disabling this, PrometheusRule/AlertmanagerConfig admission calls
+# will time out and block kubectl apply operations.
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
+  tls:
+    enabled: false
+
+# ─── Prometheus ──────────────────────────────────────────────────────────────
+prometheus:
+  prometheusSpec:
+    # Allow Prometheus to discover ServiceMonitors from ALL namespaces.
+    # Default (true) restricts discovery to ServiceMonitors that carry the
+    # Helm release label. Our ServiceMonitors in the `app` namespace will not
+    # carry that label, so they would be silently ignored without this change.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+    # Allow ServiceMonitors from any namespace (including `app`).
+    serviceMonitorNamespaceSelector: {}
+    podMonitorNamespaceSelector: {}
+
+    # Reduce retention — local development cluster.
+    retention: 24h
+
+    # Resource limits suitable for a 3-node KIND cluster.
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+    # Persistent storage using KIND default StorageClass (standard / local-path).
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+
+# ─── Grafana ──────────────────────────────────────────────────────────────────
+grafana:
+  enabled: true
+  adminPassword: admin
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ─── Alertmanager ────────────────────────────────────────────────────────────
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+
+# ─── kube-state-metrics ──────────────────────────────────────────────────────
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# ─── node-exporter ───────────────────────────────────────────────────────────
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 64Mi

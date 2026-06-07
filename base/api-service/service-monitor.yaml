@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-service
+  namespace: app
+  labels:
+    app: api-service
+    app.kubernetes.io/part-of: major-project
+spec:
+  # Selects the api-service Service in the app namespace.
+  # The Prometheus Operator resolves the Service's Endpoints and scrapes
+  # each backing pod individually — both replicas get scraped.
+  selector:
+    matchLabels:
+      app: api-service
+  namespaceSelector:
+    matchNames:
+      - app
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

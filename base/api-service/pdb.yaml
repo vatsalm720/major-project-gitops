@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-service
+  namespace: app
+  labels:
+    app: api-service
+    app.kubernetes.io/name: api-service
+    app.kubernetes.io/part-of: major-project
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: api-service

@@ -1,0 +1,62 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-service
+  namespace: app
+  labels:
+    app: api-service
+    app.kubernetes.io/part-of: major-project
+spec:
+  # ── Scale target ──────────────────────────────────────────────────────────
+  # The Deployment the HPA controls. The HPA reads this Deployment's current
+  # replica count and writes back a new count when scaling decisions are made.
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-service
+
+  # ── Replica bounds ────────────────────────────────────────────────────────
+  # minReplicas: the HPA will never scale below this. Ensures availability
+  # even when all metrics are below their targets.
+  # maxReplicas: hard ceiling. Prevents runaway scaling if a metric misbehaves
+  # or load spikes unexpectedly. Also limits resource consumption on this
+  # local KIND cluster (ResourceQuota will enforce this further).
+  minReplicas: 2
+  maxReplicas: 6
+
+  # ── Metrics ───────────────────────────────────────────────────────────────
+  metrics:
+    # ── Primary: CPU utilisation ─────────────────────────────────────────
+    # type: Resource → reads from metrics.k8s.io (Metrics Server).
+    # averageUtilization: 60 means the HPA targets a mean CPU usage of 60%
+    # of each pod's declared requests.cpu (100m here).
+    # Formula: desired = ceil(current_replicas × (mean_cpu_usage / (100m × 0.60)))
+    # Example: 2 pods at 80m each → mean usage 80% → desired = ceil(2 × 80/60) = 3
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+    # ── Secondary: HTTP request rate ─────────────────────────────────────
+    # type: Pods → reads from custom.metrics.k8s.io (Prometheus Adapter).
+    # The adapter resolves this metric name using the rule defined in
+    # deploy/helm/prometheus-adapter/values.yaml:
+    #   seriesQuery: http_requests_total{namespace!="",pod!=""}
+    #   metricsQuery: sum(rate(<<.Series>>[2m])) by (<<.GroupBy>>)
+    #
+    # target.type: AverageValue → the HPA computes the mean value of the
+    # metric across all current pods, then scales to bring that mean to 10.
+    # AverageValue (not Utilization) is used for custom metrics because there
+    # is no declared "request" value to compute a percentage against.
+    #
+    # Target of 10 req/s per pod: if 2 pods collectively handle 30 req/s
+    # (mean = 15, above target 10), desired = ceil(2 × 15/10) = 3 replicas.
+    - type: Pods
+      pods:
+        metric:
+          name: http_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "10"
