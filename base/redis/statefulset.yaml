@@ -3,6 +3,8 @@ kind: StatefulSet
 metadata:
   name: redis
   namespace: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app: redis
     app.kubernetes.io/name: redis

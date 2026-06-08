@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-app
+  namespace: gitops
+  labels:
+    app.kubernetes.io/part-of: major-project
+  annotations:
+    # Lowest wave: the Prometheus Operator chart installs the CRDs
+    # (ServiceMonitor, PrometheusRule, ...) that app-app's resources depend on.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 86.1.0
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/monitoring/kube-prometheus-stack-values.yaml
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: prometheus-adapter
+      targetRevision: 5.3.0
+      helm:
+        releaseName: prometheus-adapter
+        valueFiles:
+          - $values/monitoring/prometheus-adapter-values.yaml
+    - repoURL: https://github.com/vatsalm720/major-project-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    # NOT automated yet — see docs/gitops-structure.md "Adopting the monitoring
+    # stack into Argo CD" for why this needs a one-time manual cutover
+    # (uninstalling the existing `helm install`-managed releases first) before
+    # automated: {prune: true, selfHeal: true} can be turned on safely.
+    syncOptions:
+      - CreateNamespace=false

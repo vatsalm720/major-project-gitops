@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: worker-service
   namespace: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app: worker-service
     app.kubernetes.io/name: worker-service

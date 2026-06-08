@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: chaos-service
   namespace: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app: chaos-service
     app.kubernetes.io/name: chaos-service
