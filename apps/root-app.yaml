@@ -13,8 +13,10 @@ spec:
     repoURL: https://github.com/vatsalm720/major-project-gitops.git
     targetRevision: main
     path: apps
-    directory:
-      recurse: false
+    # No `directory:` block: Argo CD normalizes an explicit `recurse: false`
+    # (its own default) down to null on the live object, which made root-app
+    # perpetually OutOfSync against itself (it manages its own manifest here).
+    # Omitting it is behaviorally identical and lets live == git converge.
   destination:
     server: https://kubernetes.default.svc
     namespace: gitops
