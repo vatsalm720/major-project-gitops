@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: api-service
   namespace: app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app: api-service
     app.kubernetes.io/name: api-service
