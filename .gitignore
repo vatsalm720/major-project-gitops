@@ -1,0 +1,31 @@
+# Local credentials / secrets — raw secret values must never be committed here
+# (assignment hard constraint). Only kubeseal-encrypted SealedSecret YAML belongs
+# in this repo.
+.env
+*.pem
+*.key
+*.crt
+*.p12
+kubeconfig*
+*.kubeconfig
+
+# Helm chart artifacts — charts are pulled from chart repos via Argo CD
+# multi-source Applications, not vendored into this repo
+charts/
+*.tgz
+Chart.lock
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
