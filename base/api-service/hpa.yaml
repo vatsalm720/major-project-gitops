@@ -6,6 +6,15 @@ metadata:
   labels:
     app: api-service
     app.kubernetes.io/part-of: major-project
+  annotations:
+    # Wave 2: HPA scaleTargetRef points to the api-service Deployment.
+    # The HPA controller queries the Deployment's current replica count on
+    # creation; if the Deployment does not yet exist the controller emits a
+    # FailedGetScale error which Argo CD records as a hook failure and halts
+    # the sync before wave-1 Deployments are applied. Placing the HPA in
+    # wave 2 guarantees Deployments (wave 1) are Running before the HPA
+    # is created.
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   # ── Scale target ──────────────────────────────────────────────────────────
   # The Deployment the HPA controls. The HPA reads this Deployment's current
