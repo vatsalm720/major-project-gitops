@@ -4,14 +4,15 @@ resources:
   - ../../platform/namespaces
   - ../../base
   - app-credentials-sealed.yaml
-# images block populated by CI (Task 18 bot commit)
-# images:
-#   - name: major-project-api-service
-#     newName: localhost:5000/major-project-api-service
-#     newTag: <sha>
-#   - name: major-project-worker-service
-#     newName: localhost:5000/major-project-worker-service
-#     newTag: <sha>
-#   - name: major-project-chaos-service
-#     newName: localhost:5000/major-project-chaos-service
-#     newTag: <sha>
+# images block — pinned to phase5-observability SHA 458fe73 (Tasks 23+24)
+# Task 18 bot commit will automate future updates.
+images:
+  - name: major-project-api-service
+    newName: localhost:5000/major-project-api-service
+    newTag: "458fe73"
+  - name: major-project-worker-service
+    newName: localhost:5000/major-project-worker-service
+    newTag: "458fe73"
+  - name: major-project-chaos-service
+    newName: localhost:5000/major-project-chaos-service
+    newTag: "458fe73"
