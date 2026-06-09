@@ -4,12 +4,12 @@ resources:
   - ../../platform/namespaces
   - ../../base
   - app-credentials-sealed.yaml
-# images block — api/worker at 458fe73 (Tasks 23+24), chaos at 32792dc (+exempt fix)
+# images block — api at 2ecada1 (http_errors_total cold-start fix), worker at 458fe73, chaos at 32792dc
 # Task 18 bot commit will automate future updates.
 images:
   - name: major-project-api-service
     newName: localhost:5000/major-project-api-service
-    newTag: "458fe73"
+    newTag: "2ecada1"
   - name: major-project-worker-service
     newName: localhost:5000/major-project-worker-service
     newTag: "458fe73"
