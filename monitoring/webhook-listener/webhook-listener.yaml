@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-listener-script
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: major-project
+data:
+  webhook.py: |
+    #!/usr/bin/env python3
+    """Minimal HTTP webhook listener — prints every POST payload to stdout."""
+    import datetime
+    import json
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            ts = datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z"
+            sep = "=" * 60
+            print(f"\n{sep}", flush=True)
+            print(f"WEBHOOK {ts}  {self.command} {self.path}", flush=True)
+            try:
+                print(json.dumps(json.loads(body), indent=2), flush=True)
+            except Exception:
+                print(body.decode(errors="replace"), flush=True)
+            print(sep, flush=True)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+
+        def log_message(self, *_):
+            pass  # suppress default access-log noise
+
+    print("Webhook listener started on :9000", flush=True)
+    HTTPServer(("0.0.0.0", 9000), Handler).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-listener
+  namespace: monitoring
+  labels:
+    app: webhook-listener
+    app.kubernetes.io/part-of: major-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-listener
+  template:
+    metadata:
+      labels:
+        app: webhook-listener
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: webhook-listener
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/app/webhook.py"]
+          ports:
+            - containerPort: 9000
+              name: http
+          volumeMounts:
+            - name: script
+              mountPath: /app
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: script
+          configMap:
+            name: webhook-listener-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-listener
+  namespace: monitoring
+  labels:
+    app: webhook-listener
+    app.kubernetes.io/part-of: major-project
+spec:
+  selector:
+    app: webhook-listener
+  ports:
+    - port: 9000
+      targetPort: 9000
+      name: http

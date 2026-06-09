@@ -35,6 +35,9 @@ spec:
     - repoURL: https://github.com/vatsalm720/major-project-gitops.git
       targetRevision: main
       path: monitoring/grafana
+    - repoURL: https://github.com/vatsalm720/major-project-gitops.git
+      targetRevision: main
+      path: monitoring/webhook-listener
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

@@ -65,6 +65,94 @@ grafana:
       cpu: 200m
       memory: 512Mi
 
+  # ── Grafana Alerting provisioning (Task 2.14) ─────────────────────────────
+  # These files are written to /etc/grafana/provisioning/alerting/ on startup.
+  # Grafana reads them once; a pod restart is required to pick up any changes.
+  alerting:
+    contactpoints.yaml:
+      apiVersion: 1
+      contactPoints:
+        - orgId: 1
+          name: webhook-receiver
+          receivers:
+            - uid: webhook-receiver-uid
+              type: webhook
+              settings:
+                url: http://webhook-listener.monitoring.svc.cluster.local:9000
+                httpMethod: POST
+
+    notification-policy.yaml:
+      apiVersion: 1
+      policies:
+        - orgId: 1
+          receiver: webhook-receiver
+          routes: []
+
+    rules.yaml:
+      apiVersion: 1
+      groups:
+        - orgId: 1
+          name: chaos-service-error-rate
+          folder: Major Project Alerts
+          interval: 1m
+          rules:
+            - uid: chaos-svc-high-err-rate
+              title: ChaosServiceHighErrorRate
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: prometheus
+                  model:
+                    datasource:
+                      type: prometheus
+                      uid: prometheus
+                    expr: 'sum(rate(http_errors_total{job="chaos-service"}[5m])) / sum(rate(http_requests_total{job="chaos-service"}[5m]))'
+                    instant: true
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    refId: A
+                - refId: C
+                  relativeTimeRange:
+                    from: 0
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0.05
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - A
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    refId: C
+                    type: classic_conditions
+              noDataState: NoData
+              execErrState: Alerting
+              for: 1m
+              labels:
+                severity: warning
+                service: chaos-service
+              annotations:
+                summary: Chaos service error rate exceeds 5%
+                description: >-
+                  HTTP error rate for chaos-service exceeds 5% over the last 5 minutes.
+
 # ─── Alertmanager ────────────────────────────────────────────────────────────
 alertmanager:
   alertmanagerSpec:
