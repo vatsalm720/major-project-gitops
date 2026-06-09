@@ -1,0 +1,90 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: slo-api-service
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: major-project
+spec:
+  groups:
+    # ── Recording rules ──────────────────────────────────────────────────────
+    # SLO: 99% success rate (1% error budget).
+    # Rates are computed over three windows so the multi-burn-rate alert can
+    # compare both a fast (1h) and a slow (6h) signal simultaneously.
+    - name: slo.api-service.recording
+      interval: 30s
+      rules:
+        # 5-minute error rate — used by Grafana panels and the canary gate.
+        - record: job:http_error_rate:ratio_rate5m
+          expr: |
+            sum(rate(http_errors_total{job="api-service"}[5m]))
+            /
+            sum(rate(http_requests_total{job="api-service"}[5m]))
+
+        # 1-hour error rate — short window for multi-burn-rate alert.
+        - record: job:http_error_rate:ratio_rate1h
+          expr: |
+            sum(rate(http_errors_total{job="api-service"}[1h]))
+            /
+            sum(rate(http_requests_total{job="api-service"}[1h]))
+
+        # 6-hour error rate — long window for multi-burn-rate alert.
+        - record: job:http_error_rate:ratio_rate6h
+          expr: |
+            sum(rate(http_errors_total{job="api-service"}[6h]))
+            /
+            sum(rate(http_requests_total{job="api-service"}[6h]))
+
+        # Fraction of 30-day error budget remaining (1.0 = full, 0 = exhausted).
+        # `or vector(0)` ensures the rule produces 1.0 when there are zero errors
+        # rather than returning no data, which would make the Grafana gauge blank.
+        - record: job:http_error_budget_remaining:30d
+          expr: |
+            1 - (
+              (sum(rate(http_errors_total{job="api-service"}[30d])) or vector(0))
+              /
+              sum(rate(http_requests_total{job="api-service"}[30d]))
+              /
+              0.01
+            )
+
+    # ── Alerting rules ────────────────────────────────────────────────────────
+    - name: slo.api-service.alerts
+      rules:
+        # Multi-burn-rate alert: fires when BOTH the 1h and 6h error rates exceed
+        # 5× the 1% SLO budget (i.e. >5% errors in both windows).  Requiring both
+        # windows to exceed the threshold simultaneously reduces false positives
+        # from short-lived traffic spikes.  At 5× burn the 30-day budget exhausts
+        # in 30/5 = 6 days.
+        - alert: HighErrorBudgetBurnRate
+          expr: |
+            job:http_error_rate:ratio_rate1h > (5 * 0.01)
+            and
+            job:http_error_rate:ratio_rate6h > (5 * 0.01)
+          for: 2m
+          labels:
+            severity: page
+            job: api-service
+          annotations:
+            summary: "api-service error budget burning at >5x rate"
+            description: >-
+              1h error rate {{ $value | humanizePercentage }} and 6h error rate
+              both exceed 5x the 1% SLO budget. At this burn rate the 30-day
+              error budget will be exhausted in under 6 days.
+
+        # p95 latency SLO: histogram_quantile over a 5-minute rate window.
+        # Threshold is 500 ms (0.5 s) per the assignment SLO contract.
+        - alert: HighP95Latency
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(request_duration_seconds_bucket{job="api-service"}[5m])) by (le)
+            ) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            job: api-service
+          annotations:
+            summary: "api-service p95 latency exceeds 500 ms SLO"
+            description: >-
+              p95 request latency is {{ $value | humanizeDuration }} over the last
+              5 minutes, exceeding the 500 ms SLO threshold.

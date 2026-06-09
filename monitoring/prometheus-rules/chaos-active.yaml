@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: chaos-active-alert
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: major-project
+spec:
+  groups:
+    - name: chaos.alerts
+      rules:
+        # Fires when any chaos mode has been continuously active for > 2 minutes.
+        # chaos_active is a Gauge with chaos_mode label; value is 1 when that
+        # mode is active and 0 otherwise.  The job selector scopes this to the
+        # chaos-service scrape target so stale TSDB series from other jobs do
+        # not produce spurious alerts.
+        - alert: ChaosActive
+          expr: chaos_active{job="chaos-service"} > 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Chaos mode {{ $labels.chaos_mode }} active for over 2 minutes"
+            description: >-
+              chaos-service has been running chaos_mode={{ $labels.chaos_mode }} for
+              over 2 minutes. If this is unintentional, stop it via
+              POST /chaos/stop on the chaos-service.
