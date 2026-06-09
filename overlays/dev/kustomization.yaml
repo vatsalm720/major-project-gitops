@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ../../platform/namespaces
   - ../../base
+  - app-credentials-sealed.yaml
 # images block populated by CI (Task 18 bot commit)
 # images:
 #   - name: major-project-api-service
