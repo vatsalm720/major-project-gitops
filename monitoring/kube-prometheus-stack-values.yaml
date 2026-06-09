@@ -142,7 +142,7 @@ grafana:
                     maxDataPoints: 43200
                     refId: C
                     type: classic_conditions
-              noDataState: NoData
+              noDataState: OK
               execErrState: Alerting
               for: 1m
               labels:
