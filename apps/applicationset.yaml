@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: app-environments
+  namespace: gitops
+  labels:
+    app.kubernetes.io/part-of: major-project
+  annotations:
+    # Wave 0: same as the former app-app — syncs after monitoring-app (wave -1)
+    # so that CRDs installed by the monitoring stack exist before any
+    # environment Application is first reconciled.
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  generators:
+    - list:
+        elements:
+          - environment: dev
+            targetNamespace: app
+          - environment: staging
+            targetNamespace: app-staging
+          - environment: prod
+            targetNamespace: app-prod
+  template:
+    metadata:
+      name: "{{environment}}-app"
+      namespace: gitops
+      labels:
+        app.kubernetes.io/part-of: major-project
+        environment: "{{environment}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/vatsalm720/major-project-gitops.git
+        targetRevision: main
+        path: "overlays/{{environment}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{targetNamespace}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
