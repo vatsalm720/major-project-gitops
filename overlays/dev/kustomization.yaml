@@ -4,7 +4,7 @@ resources:
   - ../../platform/namespaces
   - ../../base
   - app-credentials-sealed.yaml
-# images block — pinned to phase5-observability SHA 458fe73 (Tasks 23+24)
+# images block — api/worker at 458fe73 (Tasks 23+24), chaos at 32792dc (+exempt fix)
 # Task 18 bot commit will automate future updates.
 images:
   - name: major-project-api-service
@@ -15,4 +15,4 @@ images:
     newTag: "458fe73"
   - name: major-project-chaos-service
     newName: localhost:5000/major-project-chaos-service
-    newTag: "458fe73"
+    newTag: "32792dc"
