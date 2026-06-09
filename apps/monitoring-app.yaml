@@ -29,13 +29,15 @@ spec:
     - repoURL: https://github.com/vatsalm720/major-project-gitops.git
       targetRevision: main
       ref: values
+    - repoURL: https://github.com/vatsalm720/major-project-gitops.git
+      targetRevision: main
+      path: monitoring/prometheus-rules
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
   syncPolicy:
-    # NOT automated yet — see docs/gitops-structure.md "Adopting the monitoring
-    # stack into Argo CD" for why this needs a one-time manual cutover
-    # (uninstalling the existing `helm install`-managed releases first) before
-    # automated: {prune: true, selfHeal: true} can be turned on safely.
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=false

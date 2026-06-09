@@ -17,16 +17,18 @@ prometheusOperator:
 # ─── Prometheus ──────────────────────────────────────────────────────────────
 prometheus:
   prometheusSpec:
-    # Allow Prometheus to discover ServiceMonitors from ALL namespaces.
-    # Default (true) restricts discovery to ServiceMonitors that carry the
-    # Helm release label. Our ServiceMonitors in the `app` namespace will not
-    # carry that label, so they would be silently ignored without this change.
+    # Allow Prometheus to discover ServiceMonitors/PrometheusRules from ALL
+    # namespaces. Default (true) restricts discovery to resources carrying the
+    # Helm release label. Our ServiceMonitors (app ns) and PrometheusRules
+    # (monitoring ns) will not carry that label and would be silently ignored.
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
 
-    # Allow ServiceMonitors from any namespace (including `app`).
+    # Allow discovery from any namespace.
     serviceMonitorNamespaceSelector: {}
     podMonitorNamespaceSelector: {}
+    ruleNamespaceSelector: {}
 
     # Reduce retention — local development cluster.
     retention: 24h
