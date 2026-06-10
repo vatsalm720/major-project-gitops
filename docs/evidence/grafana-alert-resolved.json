@@ -1,0 +1,50 @@
+{
+  "receiver": "webhook-receiver",
+  "status": "resolved",
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "ChaosServiceHighErrorRate",
+        "grafana_folder": "Major Project Alerts",
+        "service": "chaos-service",
+        "severity": "warning"
+      },
+      "annotations": {
+        "description": "HTTP error rate for chaos-service exceeds 5% over the last 5 minutes.",
+        "summary": "Chaos service error rate exceeds 5%"
+      },
+      "startsAt": "2026-06-10T07:18:30Z",
+      "endsAt": "2026-06-10T07:18:30Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/chaos-svc-high-err-rate/view?orgId=1",
+      "fingerprint": "7bee724368390756",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=__alert_rule_uid__%3Dchaos-svc-high-err-rate&matcher=service%3Dchaos-service&matcher=severity%3Dwarning&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "ruleUID": "chaos-svc-high-err-rate",
+      "values": null,
+      "valueString": "",
+      "orgId": 1
+    }
+  ],
+  "groupLabels": {},
+  "commonLabels": {
+    "alertname": "ChaosServiceHighErrorRate",
+    "grafana_folder": "Major Project Alerts",
+    "service": "chaos-service",
+    "severity": "warning"
+  },
+  "commonAnnotations": {
+    "description": "HTTP error rate for chaos-service exceeds 5% over the last 5 minutes.",
+    "summary": "Chaos service error rate exceeds 5%"
+  },
+  "externalURL": "http://localhost:3000/",
+  "appVersion": "13.0.1+security-01",
+  "version": "1",
+  "groupKey": "{}:{}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[RESOLVED]  (ChaosServiceHighErrorRate Major Project Alerts chaos-service warning)",
+  "state": "ok",
+  "message": "**Resolved**\n\nValue: [no value]\nLabels:\n - alertname = ChaosServiceHighErrorRate\n - grafana_folder = Major Project Alerts\n - service = chaos-service\n - severity = warning\nAnnotations:\n - description = HTTP error rate for chaos-service exceeds 5% over the last 5 minutes.\n - summary = Chaos service error rate exceeds 5%\nSource: http://localhost:3000/alerting/grafana/chaos-svc-high-err-rate/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=__alert_rule_uid__%3Dchaos-svc-high-err-rate&matcher=service%3Dchaos-service&matcher=severity%3Dwarning&orgId=1\n"
+}
