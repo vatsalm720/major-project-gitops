@@ -10,13 +10,13 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  - from: []
-   # - podSelector:
-    #    matchLabels:
-     #     app: api-service
-    #- podSelector:
-     #   matchLabels:
-      #    app: worker-service
+  - from: 
+    - podSelector:
+        matchLabels:
+          app: api-service
+    - podSelector:
+        matchLabels:
+          app: worker-service
     ports:
     - protocol: TCP
       port: 6379
