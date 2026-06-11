@@ -4,14 +4,27 @@ namespace: app-prod
 resources:
   - namespace.yaml
   - ../../base
-# images block populated on promotion from staging
-# images:
-#   - name: major-project-api-service
-#     newName: localhost:5000/major-project-api-service
-#     newTag: <sha>
-#   - name: major-project-worker-service
-#     newName: localhost:5000/major-project-worker-service
-#     newTag: <sha>
-#   - name: major-project-chaos-service
-#     newName: localhost:5000/major-project-chaos-service
-#     newTag: <sha>
+# ServiceMonitors in base hardcode spec.namespaceSelector.matchNames: [app].
+# The kustomize `namespace:` transformer rewrites metadata.namespace but NOT
+# that inner spec field, so without this patch prod would scrape pods in
+# `app`. Override it to this overlay's namespace for all three ServiceMonitors.
+patches:
+  - target:
+      kind: ServiceMonitor
+    patch: |-
+      - op: replace
+        path: /spec/namespaceSelector/matchNames
+        value:
+          - app-prod
+# images pinned to dev's current tag for reproducible fresh-cluster syncs.
+# Promotion (dev -> staging -> prod) updates these newTag values.
+images:
+  - name: major-project-api-service
+    newName: localhost:5000/major-project-api-service
+    newTag: "bb225dc"
+  - name: major-project-worker-service
+    newName: localhost:5000/major-project-worker-service
+    newTag: "bb225dc"
+  - name: major-project-chaos-service
+    newName: localhost:5000/major-project-chaos-service
+    newTag: "bb225dc"
