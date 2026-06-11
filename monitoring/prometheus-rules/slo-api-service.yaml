@@ -19,21 +19,21 @@ spec:
           expr: |
             sum(rate(http_errors_total{job="api-service"}[5m]))
             /
-            sum(rate(http_requests_total{job="api-service"}[5m]))
+            (sum(rate(http_requests_total{job="api-service"}[5m])) > 0)
 
         # 1-hour error rate — short window for multi-burn-rate alert.
         - record: job:http_error_rate:ratio_rate1h
           expr: |
             sum(rate(http_errors_total{job="api-service"}[1h]))
             /
-            sum(rate(http_requests_total{job="api-service"}[1h]))
+            (sum(rate(http_requests_total{job="api-service"}[1h])) > 0)
 
         # 6-hour error rate — long window for multi-burn-rate alert.
         - record: job:http_error_rate:ratio_rate6h
           expr: |
             sum(rate(http_errors_total{job="api-service"}[6h]))
             /
-            sum(rate(http_requests_total{job="api-service"}[6h]))
+            (sum(rate(http_requests_total{job="api-service"}[6h])) > 0)
 
         # Fraction of 30-day error budget remaining (1.0 = full, 0 = exhausted).
         # `or vector(0)` ensures the rule produces 1.0 when there are zero errors
