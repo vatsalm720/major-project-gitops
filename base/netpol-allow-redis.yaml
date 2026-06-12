@@ -9,15 +9,4 @@ spec:
       app: redis
   policyTypes:
   - Ingress
-  ingress:
-  - from: 
-    - podSelector:
-        matchLabels:
-          app: api-service
-    - podSelector:
-        matchLabels:
-          app: worker-service
-    ports:
-    - protocol: TCP
-      port: 6379
- 
+  ingress: []
