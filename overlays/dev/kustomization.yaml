@@ -9,10 +9,10 @@ resources:
 images:
   - name: major-project-api-service
     newName: localhost:5000/major-project-api-service
-    newTag: "981c682"
+    newTag: "4933bec"
   - name: major-project-worker-service
     newName: localhost:5000/major-project-worker-service
-    newTag: "981c682"
+    newTag: "4933bec"
   - name: major-project-chaos-service
     newName: localhost:5000/major-project-chaos-service
-    newTag: "981c682"
+    newTag: "4933bec"
